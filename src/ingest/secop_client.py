@@ -161,6 +161,12 @@ def pull_data(max_rows: int = None, output_filename: str = "secop_raw.parquet") 
     print("Cleaning data...")
     df = clean_dataframe(df)
 
+    # CRITICAL: Deduplicate by id_contrato (API can return duplicates)
+    print(f"Rows before deduplication: {len(df):,}")
+    df = df.drop_duplicates(subset=['id_contrato'], keep='first')
+    print(f"Rows after deduplication:  {len(df):,}")
+    print(f"Duplicates removed:        {total_fetched - len(df):,}")
+
     print(f"Saving to {output_path}...")
     df.to_parquet(output_path, index=False, compression="snappy")
 

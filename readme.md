@@ -14,7 +14,7 @@
 
 AuditLens is a procurement risk scoring system built on Colombia's SECOP II dataset — the national electronic contracting platform with 1.55 million contracts and 406 trillion COP (~$100B USD) in spend from 2019-2022.
 
-The system scores every contract across three independent risk dimensions and produces a ranked agency exposure leaderboard that tells auditors **where to look first**. This is exactly the class of tool that consulting firms charge EUR 500,000+ to deliver for government clients.
+The system scores every contract across four independent risk dimensions and produces a ranked agency exposure leaderboard that tells auditors **where to look first**. This is exactly the class of tool that consulting firms charge EUR 500,000+ to deliver for government clients.
 
 **It is not a fraud detector. It is an audit prioritization engine.**
 
@@ -26,21 +26,22 @@ The system scores every contract across three independent risk dimensions and pr
 | -------------------------- | ------------------------------------------------- |
 | Contracts analyzed         | 1,553,594                                         |
 | Total spend analyzed       | 406 trillion COP (~$100B USD)                     |
-| Direct award rate          | 89% — 9 in 10 contracts non-competitive           |
+| Direct award rate          | 90% — 9 in 10 contracts non-competitive           |
 | High-risk contracts        | 621,437 (40% of portfolio)                        |
 | Suspicious splitting pairs | 764 vendor-agency pairs, 7.2% of national spend   |
-| Concentrated agencies      | 692 agencies with majority spend to single vendor |
-| Vendor communities detected| 127 communities via Louvain algorithm             |
+| Concentrated agencies      | 683 agencies with majority spend to single vendor |
+| Vendor communities detected| 127 communities via Louvain (modularity: 0.88)    |
 | Estimated value at risk    | 98.5 trillion COP                                 |
-| Precision@K lift (top 5%)  | 1.54x above random selection                      |
-| Precision@K lift (top 10%) | 1.93x above random selection                      |
+| Precision@K lift (top 5%)  | 1.54x above random (24.0% vs 15.6% baseline)      |
+| Precision@K lift (top 10%) | 1.93x above random (30.1% vs 15.6% baseline)      |
+| Holdout validation (2022)  | 20.1% precision, 17.5% degradation from training  |
 | Permutation test Z-score   | 62.9 — lift is statistically real                 |
 
 ---
 
-## The Three Risk Signals
+## The Four Risk Signals
 
-### 1. Process Anomaly Score (60% weight)
+### 1. Process Anomaly Score (55% weight)
 
 Isolation Forest + HBOS ensemble trained on 25 behavioral features per contract. Detects contracts that are structurally unusual relative to their peer group — unusual duration, value, vendor behavior, or agency concentration patterns. Models trained on 2019-2021 data only; scored blind on 2022.
 
@@ -60,17 +61,27 @@ Rule-based rolling window detector. Flags vendor-agency pairs that award multipl
 - Accounts for year-over-year SMMLV adjustments
 - Flags vendor-agency pairs, not individual contracts
 
-### 3. Network Concentration Score (15% weight)
+### 3. Network Concentration Score (10% weight)
 
-Bipartite vendor-agency graph (194,477 vendor nodes, 1,705 agency nodes) analyzed using PageRank, Herfindahl-Hirschman Index, and Louvain community detection. Found 692 agencies routing majority spend to a single vendor. In a healthy competitive market this rate should be below 20%.
+Bipartite vendor-agency graph (194,477 vendor nodes, 1,705 agency nodes) analyzed using PageRank and Herfindahl-Hirschman Index. Found 683 agencies routing majority spend to a single vendor. In a healthy competitive market this rate should be below 20%.
 
 **Graph Analytics:**
-- **PageRank:** Identifies influential vendors in the network
-- **HHI:** Measures market concentration per agency
-- **Louvain Community Detection:** Discovers 127 tightly-connected vendor clusters
+- **PageRank:** Identifies influential vendors with disproportionate influence (5,350 preferential vendors flagged)
+- **HHI:** Measures market concentration per agency (mean HHI: 0.288)
 - **Preferential Attachment:** Flags contracts with disproportionate vendor-agency coupling
 
-Community detection reveals hidden collusion patterns — vendors operating as coordinated groups across agencies that appear independent on the surface.
+### 4. Community Detection Score (10% weight)
+
+Louvain algorithm applied to the vendor-agency bipartite graph to discover coordinated vendor clusters operating across agencies that appear independent on the surface.
+
+**Key Findings:**
+- **127 communities detected** with exceptional modularity score of **0.88** (>0.3 indicates meaningful structure)
+- **20 flagged communities** with elevated risk patterns
+- **Community 13:** 4,336 vendors, 68.3% proxy rate, 21 trillion COP in contracts
+- **Community 14:** 13,767 vendors, 52.7% proxy rate, 14 trillion COP in contracts
+- **64.26 trillion COP** in flagged community spend (22.6% of total)
+
+The 0.88 modularity score indicates exceptionally strong coordination patterns — these are not random clusters but tightly-coupled vendor networks potentially engaging in coordinated bidding.
 
 ---
 
