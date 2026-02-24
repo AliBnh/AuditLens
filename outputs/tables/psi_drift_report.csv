@@ -1,0 +1,14 @@
+feature,psi,status
+duracion_dias,0.49913367261977437,🔴 Retrain
+dias_firma_a_inicio,0.4738529349719677,🔴 Retrain
+log_valor,0.13254062146835394,⚠️  Monitor
+process_anomaly_score,0.1320209705747635,⚠️  Monitor
+risk_index,0.1186943864498255,⚠️  Monitor
+network_score,0.0284221916581828,✅ Stable
+vendor_modified_rate,0.02619751759922636,✅ Stable
+agency_top_vendor_share,0.020150659901093822,✅ Stable
+vendor_direct_rate,0.018234163538309776,✅ Stable
+agency_hhi,0.016901740888824176,✅ Stable
+is_direct,0.0,✅ Stable
+is_modified,0.0,✅ Stable
+splitting_score,0.0,✅ Stable

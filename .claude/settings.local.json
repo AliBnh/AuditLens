@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(jupyter nbconvert:*)",
+      "Bash(python:*)",
+      "Bash(for nb in notebooks/*.ipynb)",
+      "Bash(done)",
+      "Bash(git init:*)"
+    ]
+  }
+}

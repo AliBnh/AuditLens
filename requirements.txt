@@ -1,0 +1,17 @@
+pandas
+pyarrow
+requests
+scikit-learn
+scipy
+pyod
+networkx
+matplotlib
+seaborn
+plotly
+streamlit
+jupyter
+tqdm
+python-dotenv
+numpy
+setuptools
+python-louvain
