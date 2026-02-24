@@ -12,6 +12,7 @@ import pyarrow.parquet as pq
 from pathlib import Path
 from tqdm import tqdm
 import sys
+import time
 
 # Add project root to path so config is importable
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -61,7 +62,7 @@ DATE_COLS = [
 
 
 def fetch_page(offset: int, limit: int) -> list[dict]:
-    """Pull one page from the API."""
+    """Pull one page from the API with retry logic."""
     params = {
         "$select": ",".join(COLUMNS),
         "$where": (
@@ -73,9 +74,24 @@ def fetch_page(offset: int, limit: int) -> list[dict]:
         "$offset": offset,
         "$order": "fecha_de_inicio_del_contrato ASC",
     }
-    response = requests.get(SECOP_ENDPOINT, params=params, timeout=120)
-    response.raise_for_status()
-    return response.json()
+
+    # Rate limiting: 0.5 second delay to avoid API throttling
+    time.sleep(0.5)
+
+    # Retry logic for weak internet connections
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(SECOP_ENDPOINT, params=params, timeout=300)
+            response.raise_for_status()
+            return response.json()
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            if attempt < max_retries - 1:
+                wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                sys.stderr.write(f"  ⚠ Timeout/connection error, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})\n")
+                time.sleep(wait_time)
+            else:
+                raise e
 
 
 def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:

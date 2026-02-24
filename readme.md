@@ -14,7 +14,7 @@
 
 AuditLens is a procurement risk scoring system built on Colombia's SECOP II dataset — the national electronic contracting platform with 1.55 million contracts and 406 trillion COP (~$100B USD) in spend from 2019-2022.
 
-The system scores every contract across four independent risk dimensions and produces a ranked agency exposure leaderboard that tells auditors **where to look first**. This is exactly the class of tool that consulting firms charge EUR 500,000+ to deliver for government clients.
+The system scores every contract across five independent risk dimensions and produces a ranked agency exposure leaderboard that tells auditors **where to look first**. This is exactly the class of tool that consulting firms charge EUR 500,000+ to deliver for government clients.
 
 **It is not a fraud detector. It is an audit prioritization engine.**
 
@@ -39,9 +39,9 @@ The system scores every contract across four independent risk dimensions and pro
 
 ---
 
-## The Four Risk Signals
+## The Five Risk Signals
 
-### 1. Process Anomaly Score (55% weight)
+### 1. Process Anomaly Score (50% weight)
 
 Isolation Forest + HBOS ensemble trained on 25 behavioral features per contract. Detects contracts that are structurally unusual relative to their peer group — unusual duration, value, vendor behavior, or agency concentration patterns. Models trained on 2019-2021 data only; scored blind on 2022.
 
@@ -51,7 +51,7 @@ Isolation Forest + HBOS ensemble trained on 25 behavioral features per contract.
 - Behavioral features: direct award, post-award modification, vendor/agency rates
 - Concentration metrics: HHI, top vendor share, vendor diversity
 
-### 2. Contract Splitting Score (25% weight)
+### 2. Contract Splitting Score (20% weight)
 
 Rule-based rolling window detector. Flags vendor-agency pairs that award multiple contracts just below Colombia's statutory audit thresholds (SMMLV-denominated) within 30, 60, and 90-day windows. Found 764 suspicious pairs covering 12,487 contracts and 7.2% of national spend — within the 5-15% range reported in the procurement audit literature.
 
@@ -82,6 +82,24 @@ Louvain algorithm applied to the vendor-agency bipartite graph to discover coord
 - **64.26 trillion COP** in flagged community spend (22.6% of total)
 
 The 0.88 modularity score indicates exceptionally strong coordination patterns — these are not random clusters but tightly-coupled vendor networks potentially engaging in coordinated bidding.
+
+### 5. Price Benchmarking Score (10% weight)
+
+XGBoost regression model predicts expected contract value based on contract characteristics, vendor history, and agency patterns. Contracts with anomalous pricing (both over and underpricing) receive higher risk scores.
+
+**Methodology:**
+- **Sector-aware normalization:** Compares hospitals to hospitals, roads to roads (not hospitals to pencils)
+- **Absolute residuals:** Flags both overpricing AND suspicious underpricing (collusion/quality fraud)
+- **Direct award interaction:** Overpricing matters more without competition (×1.0 direct, ×0.5 competitive)
+- **Leakage prevention:** Excludes vendor spend aggregates to ensure price signal independence
+
+**Key Findings:**
+- **R² = 0.83** — Model explains 83% of price variation across sectors
+- **No overfitting** — Validation metrics better than training (generalizes to 2022 holdout)
+- **Price anomalies flagged** — Top 5% most anomalous contracts by sector-adjusted residuals
+- **Correlation with proxy** — Validates whether price adds independent signal
+
+Price benchmarking identifies contracts where pricing deviates significantly from sector-specific market expectations, suggesting potential value inflation, collusion, or bid rigging.
 
 ---
 

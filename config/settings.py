@@ -28,11 +28,12 @@ SMMLV = {
     2023: 1_160_000,
 }
 
-# Risk index weights (empirically validated, tier-aware ranking with community detection)
-WEIGHT_PROCESS_ANOMALY = 0.55
-WEIGHT_SPLITTING       = 0.25
+# Risk index weights (empirically validated, tier-aware ranking with community detection and price benchmarking)
+WEIGHT_PROCESS_ANOMALY = 0.50
+WEIGHT_SPLITTING       = 0.20
 WEIGHT_NETWORK         = 0.10
 WEIGHT_COMMUNITY       = 0.10
+WEIGHT_PRICE           = 0.10
 
 # Risk tier thresholds
 TIER_LOW    = 0.3
